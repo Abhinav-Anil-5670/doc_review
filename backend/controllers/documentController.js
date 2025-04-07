@@ -12,8 +12,8 @@ const uploadDocument = async (req, res) => {
     }
 
     // const filePath = req.file.path;
-    const file_path = path.join('uploads', filename); // no leading slash
-
+    //const file_path = path.join('uploads', req.file.path); 
+    const file_path =  req.file.path;
 
     const fileName = req.file.filename;
 
@@ -29,7 +29,7 @@ const uploadDocument = async (req, res) => {
 
     const result = await pool.query(
       'INSERT INTO documents (user_id, title, filename, file_path, version) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [userId, title, fileName, filePath, version]
+      [userId, title, fileName, file_path, version]
     );
 
     res.status(201).json({ message: 'Document uploaded!', document: result.rows[0] });
@@ -65,8 +65,6 @@ const getDocumentHistory = async (req, res) => {
   }
 };
 
-// ✅ NEW: Download controller
-// Add this function inside your documentController.js
 const downloadDocument = async (req, res) => {
   const documentId = req.params.id;
   

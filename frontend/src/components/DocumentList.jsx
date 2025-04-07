@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 
 function DocumentList() {
   const [documents, setDocuments] = useState([]);
@@ -18,7 +17,7 @@ function DocumentList() {
 
   const fetchDocuments = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/documents`, {
+      const res = await fetch(`http://localhost:5000/api/documents`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -37,34 +36,42 @@ function DocumentList() {
 
   const fetchComments = async (documentId) => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/comments/${documentId}`);
-      setCommentsMap((prev) => ({ ...prev, [documentId]: res.data }));
+      const res = await fetch(`http://localhost:5000/api/comments/${documentId}`);
+      const data = await res.json(); 
+      setCommentsMap((prev) => ({ ...prev, [documentId]: data }));
     } catch (err) {
       console.error("Error fetching comments:", err);
     }
   };
+  
 
   const handlePostComment = async (documentId) => {
     if (!newComment.trim()) return;
     try {
-      await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/comments/${documentId}`,
-        {
-          comment: newComment,
-        },
-      
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const response = await fetch(
+            `http://localhost:5000/api/comments/${documentId}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    comment: newComment
+                })
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-      );
-      setNewComment("");
-      fetchComments(documentId); // Refresh after posting
+
+        setNewComment("");
+        fetchComments(documentId); 
     } catch (err) {
-      console.error("Error posting comment:", err);
+        console.error("Error posting comment:", err);
     }
-  };
+};
 
   const toggleComments = (docId) => {
     if (expandedComments === docId) {
