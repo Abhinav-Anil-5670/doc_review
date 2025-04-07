@@ -3,11 +3,11 @@ const pool = require('../config/db');
 const addComment = async (req, res) => {
   try {
     const userId = req.user.id;
-    const documentId = req.params.documentId;
     const { comment } = req.body;
+    const { documentId } = req.params;
 
-    if (!comment) {
-      return res.status(400).json({ message: 'Comment text is required.' });
+    if (!documentId || !comment) {
+      return res.status(400).json({ message: 'Document ID and comment text are required.' });
     }
 
     const result = await pool.query(
@@ -25,18 +25,18 @@ const addComment = async (req, res) => {
 
 const getComments = async (req, res) => {
   try {
-    const documentId = req.params.documentId;
+    const { documentId } = req.params;
 
     const result = await pool.query(
-      `SELECT c.*, u.name AS commenter 
-        FROM comments c 
-        JOIN users u ON c.user_id = u.id 
-        WHERE c.document_id = $1 
-        ORDER BY c.created_at ASC`,
+      `SELECT c.*, u.name AS username
+       FROM comments c 
+       JOIN users u ON c.user_id = u.id 
+       WHERE c.document_id = $1 
+       ORDER BY c.created_at ASC`,
       [documentId]
     );
 
-    res.status(200).json({ comments: result.rows });
+    res.status(200).json(result.rows);
 
   } catch (err) {
     console.error('Fetch comments error:', err);
