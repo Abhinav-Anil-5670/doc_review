@@ -36,9 +36,11 @@ function DocumentList() {
 
   const fetchComments = async (documentId) => {
     try {
+
       const res = await fetch(`http://localhost:5000/api/comments/${documentId}`);
       const data = await res.json(); 
       setCommentsMap((prev) => ({ ...prev, [documentId]: data }));
+
     } catch (err) {
       console.error("Error fetching comments:", err);
     }
@@ -48,6 +50,7 @@ function DocumentList() {
   const handlePostComment = async (documentId) => {
     if (!newComment.trim()) return;
     try {
+
         const response = await fetch(
             `http://localhost:5000/api/comments/${documentId}`,
             {
@@ -64,6 +67,7 @@ function DocumentList() {
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
+
         }
 
         setNewComment("");
@@ -79,6 +83,32 @@ function DocumentList() {
     } else {
       setExpandedComments(docId);
       fetchComments(docId);
+    }
+  };
+
+  const handleDelete = async (documentId) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this document and all its data?"
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/documents/${documentId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+      alert(data.message);
+      fetchDocuments(); // Refresh list
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete document");
     }
   };
 
@@ -98,17 +128,16 @@ function DocumentList() {
 
   return (
     <div className="max-w-4xl mx-auto mt-10">
-      <h2 className="text-2xl font-bold mb-6 text-center">Uploaded Documents</h2>
+      <h2 className="text-2xl font-bold mb-6 text-center">
+        Uploaded Documents
+      </h2>
 
       {documents.length === 0 ? (
         <p className="text-center text-gray-500">No documents uploaded yet.</p>
       ) : (
         <ul className="space-y-4">
           {documents.map((doc) => (
-            <li
-              key={doc.id}
-              className="p-4 bg-white rounded-lg shadow"
-            >
+            <li key={doc.id} className="p-4 bg-white rounded-lg shadow">
               <div className="flex justify-between items-center">
                 <div>
                   <p className="font-semibold text-lg">{doc.title}</p>
@@ -126,12 +155,22 @@ function DocumentList() {
                   >
                     Download
                   </a>
+
                   <button
                     onClick={() => toggleComments(doc.id)}
                     className="text-blue-600 text-sm underline"
                   >
                     {expandedComments === doc.id ? "Hide Comments" : "Comments"}
                   </button>
+
+                  {(currentUserId === doc.uploader_id || currentUserId === doc.user_id || currentUserId === doc.user?._id) && (
+                    <button
+                      onClick={() => handleDelete(doc.id)}
+                      className="text-red-600 text-sm underline"
+                    >
+                      Delete
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -141,9 +180,13 @@ function DocumentList() {
                   <div className="max-h-40 overflow-y-auto space-y-1 mb-2">
                     {commentsMap[doc.id]?.length > 0 ? (
                       commentsMap[doc.id].map((comment) => (
-                        <div key={comment.id} className="bg-white px-2 py-1 rounded shadow-sm">
+                        <div
+                          key={comment.id}
+                          className="bg-white px-2 py-1 rounded shadow-sm"
+                        >
                           <p className="text-sm">
-                            <strong>{comment.username || "User"}</strong>: {comment.comment}
+                            <strong>{comment.username || "User"}</strong>:{" "}
+                            {comment.comment}
                           </p>
                         </div>
                       ))

@@ -12,10 +12,12 @@ const uploadDocument = async (req, res) => {
     }
 
     // const filePath = req.file.path;
+
     //const file_path = path.join('uploads', req.file.path); 
     const file_path =  req.file.path;
 
-    const fileName = req.file.filename;
+
+    
 
     const existing = await pool.query(
       'SELECT * FROM documents WHERE user_id = $1 AND title = $2 ORDER BY version DESC LIMIT 1',
@@ -46,12 +48,10 @@ const getDocumentHistory = async (req, res) => {
     const title = req.params.title;
 
     const result = await pool.query(
-      `SELECT id, title, version, filename, file_path, uploaded_at
-       FROM documents
-       WHERE user_id = $1 AND title = $2
-       ORDER BY version DESC`,
+      'SELECT id, title, version, filename, file_path, uploaded_at FROM documents WHERE user_id = $1 AND title = $2 ORDER BY version DESC',
       [userId, title]
     );
+    
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'No versions found for this document.' });
@@ -78,7 +78,7 @@ const downloadDocument = async (req, res) => {
     }
 
     const document = result.rows[0];
-    const filePath = path.resolve(__dirname, '..', document.file_path.replace(/^\/+/, ''));
+    const filePath = path.join(__dirname, '..', document.file_path);
 
     const filename = document.filename;
     console.log("📦 Stored path in DB:", document.file_path);
@@ -94,8 +94,46 @@ const downloadDocument = async (req, res) => {
   }
 };
 
+const deleteDocument = async (req, res) => {
+  const { documentId } = req.params;
+  const userId = req.user.id;
+
+  try {
+    // Verify uploader
+    const result = await pool.query(
+      'SELECT * FROM documents WHERE id = $1',
+      [documentId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Document not found' });
+    }
+
+    const document = result.rows[0];
+
+    if (document.user_id !== userId) { // ✅ Use user_id here
+      return res.status(403).json({ message: 'Unauthorized to delete this document' });
+    }
+    
+
+    // Delete the document
+    await pool.query('DELETE FROM documents WHERE id = $1', [documentId]);
+
+    res.status(200).json({ message: 'Document and related data deleted successfully' });
+
+  } catch (err) {
+    console.error('Delete document error:', err);
+    res.status(500).json({ message: 'Failed to delete document', error: err.message });
+  }
+};
+
+// module.exports = { deleteDocument };
+
+
 module.exports = {
   uploadDocument,
   getDocumentHistory,
-  downloadDocument // ✅ Export it here
+  downloadDocument,
+  deleteDocument // ✅ Include this too
 };
+

@@ -1,23 +1,31 @@
 const express = require('express');
 const router = express.Router();
 const upload = require('../middleware/upload');
-const verifyToken = require('../middleware/authMiddleware');
+const authenticate = require('../middleware/authMiddleware');
+
 const {
   uploadDocument,
   getDocumentHistory,
-  downloadDocument
+  downloadDocument,
+  deleteDocument
 } = require('../controllers/documentController');
-const authenticate = require('../middleware/authMiddleware');
 
-router.get('/history/:title', authenticate, getDocumentHistory);
 
 router.get('/test', (req, res) => {
   res.json({ message: 'Document route working!' });
 });
 
-router.post('/upload', verifyToken, upload.single('file'), uploadDocument);
+// ✅ Get document history (Authenticated)
+router.get('/history/:title', authenticate, getDocumentHistory);
 
-// Public Route: Download document by ID (No token needed)
+// ✅ Upload document (Authenticated, with file upload)
+router.post('/upload', authenticate, upload.single('file'), uploadDocument);
+
+
 router.get('/:id/download', downloadDocument);
 
+// ✅ Delete a document (Authenticated)
+router.delete('/:documentId', authenticate, deleteDocument);
+
+// ✅ Export the router LAST
 module.exports = router;
