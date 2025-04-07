@@ -2,15 +2,19 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const db = require('./config/db');
+//routes
+const commentRoutes = require('./routes/commentRoutes');
+const authRoutes = require('./routes/authRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
-// Load environment variables
+
 dotenv.config();
 
 const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json()); // Parse JSON bodies
+app.use(express.json()); 
 
 app.use((req, res, next) => {
   console.log(`➡️  ${req.method} ${req.url}`);
@@ -19,27 +23,16 @@ app.use((req, res, next) => {
 
 // Root route - sends an HTML response for browser visibility
 app.get('/', (req, res) => {
-  res.send('<h1 style="font-family: sans-serif; color: green;">✅ Backend is working! 🚀</h1>');
+  res.send('<h1 style="font-family: sans-serif; color: green;">Backend is working</h1>');
 });
 
-// ✅ Import and use routes BEFORE the 404 fallback
-const authRoutes = require('./routes/authRoutes');
 app.use('/api/auth', authRoutes);
 
 const documentRoutes = require('./routes/documentRoutes');
-console.log('📂 Mounting /api/documents route');
-
 
 
 app.use('/api/documents', documentRoutes);
-
-const commentRoutes = require('./routes/commentRoutes');
-console.log('Comment Routing');
 app.use('/api/comments', commentRoutes);
-
-
-const uploadRoutes = require('./routes/uploadRoutes');
-console.log("Upload Routes");
 app.use('/api', uploadRoutes);
 
 
@@ -56,3 +49,35 @@ const HOST = '127.0.0.1'; // Ensures consistent local behavior
 app.listen(PORT, HOST, () => {
   console.log(`✅ Server running at http://${HOST}:${PORT}`);
 });
+
+/*
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE documents (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    filename VARCHAR(255) NOT NULL,
+    version INTEGER NOT NULL DEFAULT 1,
+    uploaded_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    file_path TEXT,
+    CONSTRAINT documents_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE comments (
+    id SERIAL PRIMARY KEY,
+    document_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    comment TEXT NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT comments_document_id_fkey FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
+    CONSTRAINT comments_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+*/

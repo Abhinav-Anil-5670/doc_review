@@ -1,23 +1,23 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Login from './components/Login';
-import Register from './components/Register';
-import Dashboard from './pages/Dashboard';
+import Home from './pages/Home';
+//import Login from './components/Login';
+//import Register from './components/Register';
+import Main from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<Home />} />
         
         {/* Protect the dashboard route */}
         <Route 
-          path="/dashboard" 
+          path="/main" 
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <Main />
             </ProtectedRoute>
           } 
         />
