@@ -50,7 +50,7 @@ function AuthPage() {
       if (!res.ok) throw new Error(data.message || 'Login failed');
 
       localStorage.setItem('token', data.token);
-      navigate('/dashboard');
+      navigate('/main');
     } catch (err) {
       setError(err.message);
     }
