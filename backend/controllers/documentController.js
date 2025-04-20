@@ -15,9 +15,11 @@ const uploadDocument = async (req, res) => {
 
     //const file_path = path.join('uploads', req.file.path); 
     const file_path =  req.file.path;
-
-
-    
+    console.log(file_path);
+    const fileName = req.file.originalname;
+    console.log(fileName);
+    const what = req.file.filename;
+    console.log(what);
 
     const existing = await pool.query(
       'SELECT * FROM documents WHERE user_id = $1 AND title = $2 ORDER BY version DESC LIMIT 1',

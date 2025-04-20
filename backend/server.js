@@ -21,7 +21,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Root route - sends an HTML response for browser visibility
 app.get('/', (req, res) => {
   res.send('<h1 style="font-family: sans-serif; color: green;">Backend is working</h1>');
 });
@@ -35,16 +34,13 @@ app.use('/api/documents', documentRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api', uploadRoutes);
 
-
-
-// ❗ Place this last: 404 fallback for undefined routes
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
 // Start the server
 const PORT = process.env.PORT || 5000;
-const HOST = '127.0.0.1'; // Ensures consistent local behavior
+const HOST = '127.0.0.1'; 
 
 app.listen(PORT, HOST, () => {
   console.log(`✅ Server running at http://${HOST}:${PORT}`);
